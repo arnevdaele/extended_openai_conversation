@@ -177,7 +177,14 @@ class OptionsFlow(config_entries.OptionsFlow):
             return self.async_create_entry(
                 title=user_input.get(CONF_NAME, DEFAULT_NAME), data=user_input
             )
-        schema = self.openai_config_option_schema(self.config_entry.options)
+        try:
+            # Access config_entry - should be available from parent class
+            config_entry = self.config_entry
+            schema = self.openai_config_option_schema(config_entry.options)
+        except AttributeError as err:
+            _LOGGER.error("Error accessing config_entry in options flow: %s", err)
+            # Fallback to empty options if config_entry is not available
+            schema = self.openai_config_option_schema(DEFAULT_OPTIONS)
         return self.async_show_form(
             step_id="init",
             data_schema=vol.Schema(schema),
